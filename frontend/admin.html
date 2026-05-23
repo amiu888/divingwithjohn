@@ -1,0 +1,941 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin — Diving with John</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Display:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy:   #0b1f3a; --navy2: #132d52;
+      --teal:   #0891b2; --cyan:  #06b6d4;
+      --bg:     #f0f9ff; --white: #ffffff;
+      --text:   #0f172a; --muted: #64748b;
+      --border: #e2e8f0;
+      --red: #ef4444; --green: #22c55e; --amber: #f59e0b;
+      --radius: 12px; --sidebar: 240px;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* LOGIN */
+    #loginScreen { min-height:100vh; display:flex; align-items:center; justify-content:center;
+      background: linear-gradient(160deg,var(--navy) 0%,var(--navy2) 100%); }
+    .login-box { background:var(--white); border-radius:20px; padding:2.5rem; width:100%; max-width:400px;
+      box-shadow:0 20px 60px rgba(0,0,0,.25); }
+    .login-box h1 { font-family:'Inter Display',sans-serif; font-size:1.5rem; font-weight:800;
+      margin-bottom:.375rem; letter-spacing:-.03em; }
+    .login-box h1 span { color:var(--cyan); }
+    .login-box p { color:var(--muted); font-size:.875rem; margin-bottom:2rem; }
+    .field { margin-bottom:1.25rem; }
+    .field label { display:block; font-size:.875rem; font-weight:500; margin-bottom:.5rem; }
+    .field input { width:100%; padding:.75rem 1rem; border:1.5px solid var(--border); border-radius:10px;
+      font-family:'Inter',sans-serif; font-size:.9375rem; outline:none; transition:border-color .2s; }
+    .field input:focus { border-color:var(--cyan); }
+    .login-err { font-size:.85rem; color:var(--red); margin-bottom:1rem; display:none; }
+
+    /* BUTTONS */
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+      padding:.75rem 1.5rem; border-radius:10px; font-family:'Inter',sans-serif;
+      font-size:.9375rem; font-weight:600; cursor:pointer; border:none;
+      transition:background .2s,transform .15s; text-decoration:none; }
+    .btn-primary { background:var(--cyan); color:var(--navy); }
+    .btn-primary:hover { background:#22d3ee; }
+    .btn-danger  { background:#fee2e2; color:var(--red); }
+    .btn-danger:hover  { background:#fecaca; }
+    .btn-warning { background:#fef3c7; color:#92400e; }
+    .btn-warning:hover { background:#fde68a; }
+    .btn-success { background:#dcfce7; color:#166534; }
+    .btn-success:hover { background:#bbf7d0; }
+    .btn-sm { padding:.35rem .75rem; font-size:.8125rem; border-radius:8px; }
+    .btn-full { width:100%; }
+    .btn-ghost { background:transparent; color:var(--muted); border:1.5px solid var(--border); }
+    .btn-ghost:hover { background:var(--bg); color:var(--text); }
+    .btn-toggle-on  { background:#dcfce7; color:#166534; }
+    .btn-toggle-on:hover  { background:#bbf7d0; }
+    .btn-toggle-off { background:#fee2e2; color:var(--red); }
+    .btn-toggle-off:hover { background:#fecaca; }
+
+    /* LAYOUT */
+    #app { display:none; min-height:100vh; }
+    .sidebar { position:fixed; top:0; left:0; bottom:0; width:var(--sidebar);
+      background:var(--navy); display:flex; flex-direction:column; z-index:50; overflow-y:auto; }
+    .sidebar-brand { padding:1.5rem 1.25rem 1.25rem;
+      font-family:'Inter Display',sans-serif; font-size:1.1rem; font-weight:800; color:var(--white);
+      letter-spacing:-.02em; border-bottom:1px solid rgba(255,255,255,.08); }
+    .sidebar-brand span { color:var(--cyan); }
+    .sidebar-label { font-size:.6875rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+      color:rgba(255,255,255,.35); padding:.75rem 1.25rem .25rem; }
+    .nav-item { display:flex; align-items:center; gap:.75rem; padding:.65rem 1.25rem;
+      margin:.1rem .5rem; border-radius:8px; cursor:pointer; color:rgba(255,255,255,.6);
+      font-size:.875rem; font-weight:500; transition:background .15s,color .15s;
+      border:none; background:none; width:calc(100% - 1rem); text-align:left; }
+    .nav-item:hover { background:rgba(255,255,255,.07); color:var(--white); }
+    .nav-item.active { background:rgba(6,182,212,.18); color:var(--cyan); }
+    .nav-icon { font-size:1rem; width:20px; text-align:center; }
+    .sidebar-footer { margin-top:auto; padding:1rem 1.25rem; border-top:1px solid rgba(255,255,255,.08); }
+    .main { margin-left:var(--sidebar); padding:2rem; min-height:100vh; }
+    .page { display:none; }
+    .page.active { display:block; }
+    .page-header { margin-bottom:2rem; display:flex; align-items:flex-start;
+      justify-content:space-between; flex-wrap:wrap; gap:1rem; }
+    .page-header-text .page-title { font-family:'Inter Display',sans-serif;
+      font-size:1.75rem; font-weight:800; letter-spacing:-.03em; }
+    .page-header-text .page-sub { color:var(--muted); font-size:.9375rem; margin-top:.25rem; }
+
+    /* STATS */
+    .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:1.25rem; margin-bottom:2rem; }
+    .stat-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; }
+    .stat-label { font-size:.8125rem; color:var(--muted); font-weight:500; margin-bottom:.5rem; }
+    .stat-number { font-family:'Inter Display',sans-serif; font-size:2rem; font-weight:800; letter-spacing:-.03em; }
+    .stat-number.teal { color:var(--teal); } .stat-number.green { color:var(--green); }
+    .stat-number.amber { color:var(--amber); } .stat-number.red { color:var(--red); }
+
+    /* TABLE CARD */
+    .card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius);
+      overflow:hidden; margin-bottom:1.5rem; }
+    .card-header { padding:1.25rem 1.5rem; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+    .card-title { font-weight:700; font-size:1rem; }
+    table { width:100%; border-collapse:collapse; }
+    th { text-align:left; padding:.75rem 1rem; font-size:.75rem; font-weight:700; letter-spacing:.06em;
+      text-transform:uppercase; color:var(--muted); background:#f8fafc; border-bottom:1px solid var(--border); }
+    td { padding:.875rem 1rem; border-bottom:1px solid var(--border); font-size:.875rem; vertical-align:middle; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:#f8fafc; }
+    .actions { display:flex; gap:.5rem; flex-wrap:wrap; }
+    .empty { text-align:center; padding:3rem; color:var(--muted); }
+
+    /* BADGE */
+    .badge { display:inline-flex; align-items:center; padding:.2rem .625rem; border-radius:100px; font-size:.75rem; font-weight:600; }
+    .badge-green  { background:#dcfce7; color:#166534; }
+    .badge-red    { background:#fee2e2; color:#991b1b; }
+    .badge-amber  { background:#fef3c7; color:#92400e; }
+    .badge-blue   { background:#dbeafe; color:#1e40af; }
+    .badge-gray   { background:#f1f5f9; color:var(--muted); }
+
+    /* MODAL */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:200;
+      align-items:center; justify-content:center; padding:1rem; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:var(--white); border-radius:16px; width:100%; max-width:580px;
+      max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+    .modal-header { padding:1.5rem; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between; }
+    .modal-title { font-weight:700; font-size:1.125rem; }
+    .modal-close { background:none; border:none; font-size:1.25rem; cursor:pointer; color:var(--muted); }
+    .modal-body { padding:1.5rem; }
+    .modal-footer { padding:1rem 1.5rem; border-top:1px solid var(--border); display:flex; gap:.75rem; justify-content:flex-end; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .form-group { margin-bottom:1.125rem; }
+    .form-group label { display:block; font-size:.875rem; font-weight:500; margin-bottom:.5rem; }
+    .form-group input,.form-group textarea,.form-group select {
+      width:100%; padding:.7rem .9rem; border:1.5px solid var(--border); border-radius:10px;
+      font-family:'Inter',sans-serif; font-size:.9375rem; outline:none; transition:border-color .2s; }
+    .form-group input:focus,.form-group textarea:focus,.form-group select:focus { border-color:var(--cyan); }
+    .form-group textarea { resize:vertical; min-height:100px; }
+
+    /* SECTIONS TOGGLE */
+    .sections-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1rem; }
+    .section-toggle-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius);
+      padding:1.25rem 1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+    .section-toggle-card h3 { font-weight:600; font-size:.9375rem; }
+    .section-toggle-card p { font-size:.8rem; color:var(--muted); margin-top:.2rem; }
+    .toggle-switch { position:relative; width:44px; height:24px; flex-shrink:0; }
+    .toggle-switch input { opacity:0; width:0; height:0; }
+    .toggle-track { position:absolute; inset:0; background:#cbd5e1; border-radius:100px; cursor:pointer; transition:.3s; }
+    .toggle-track::after { content:''; position:absolute; width:18px; height:18px; background:white;
+      border-radius:50%; top:3px; left:3px; transition:.3s; }
+    .toggle-switch input:checked + .toggle-track { background:var(--cyan); }
+    .toggle-switch input:checked + .toggle-track::after { transform:translateX(20px); }
+
+    /* MISC */
+    .toast { position:fixed; bottom:2rem; right:2rem; z-index:999; background:var(--navy); color:var(--white);
+      padding:.875rem 1.5rem; border-radius:10px; font-size:.9rem; font-weight:500;
+      box-shadow:0 8px 30px rgba(0,0,0,.2); transform:translateY(100px); opacity:0; transition:.3s; }
+    .toast.show { transform:translateY(0); opacity:1; }
+    .toast.error { background:var(--red); }
+    .search-box { padding:.6rem 1rem; border:1.5px solid var(--border); border-radius:10px;
+      font-family:'Inter',sans-serif; font-size:.875rem; outline:none; min-width:220px; }
+    .search-box:focus { border-color:var(--cyan); }
+    .truncate { max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .quote-cell { max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-style:italic; color:var(--muted); }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h1>Diving<span>withJohn</span></h1>
+    <p>Admin panel — enter your admin token to continue.</p>
+    <div class="login-err" id="loginErr">Invalid token. Please try again.</div>
+    <div class="field">
+      <label>Admin Token</label>
+      <input type="password" id="tokenInput" placeholder="Enter token…" onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="login()">Sign In</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="sidebar-brand">Diving<span>withJohn</span></div>
+    <div class="sidebar-label">Overview</div>
+    <button class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">📊</span> Dashboard</button>
+    <div class="sidebar-label">Content</div>
+    <button class="nav-item" onclick="showPage('testimonials',this)"><span class="nav-icon">💬</span> Testimonials</button>
+    <button class="nav-item" onclick="showPage('gallery',this)"><span class="nav-icon">🖼️</span> Gallery</button>
+    <button class="nav-item" onclick="showPage('faq',this)"><span class="nav-icon">❓</span> FAQ</button>
+    <button class="nav-item" onclick="showPage('locations',this)"><span class="nav-icon">📍</span> Locations</button>
+    <button class="nav-item" onclick="showPage('sections',this)"><span class="nav-icon">⚙️</span> Sections</button>
+    <div class="sidebar-label">Operations</div>
+    <button class="nav-item" onclick="showPage('courses',this)"><span class="nav-icon">🤿</span> Courses</button>
+    <button class="nav-item" onclick="showPage('bookings',this)"><span class="nav-icon">📅</span> Bookings</button>
+    <button class="nav-item" onclick="showPage('contacts',this)"><span class="nav-icon">✉️</span> Contacts</button>
+    <button class="nav-item" onclick="showPage('students',this)"><span class="nav-icon">👤</span> Students</button>
+    <div class="sidebar-footer">
+      <button class="btn btn-ghost btn-full btn-sm" onclick="logout()">Sign Out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header"><div class="page-header-text">
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-sub">Overview of your diving school.</p>
+      </div></div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Courses</div><div class="stat-number teal" id="dCourses">—</div></div>
+        <div class="stat-card"><div class="stat-label">Bookings</div><div class="stat-number green" id="dBookings">—</div></div>
+        <div class="stat-card"><div class="stat-label">Enquiries</div><div class="stat-number amber" id="dContacts">—</div></div>
+        <div class="stat-card"><div class="stat-label">Students</div><div class="stat-number teal" id="dStudents">—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Recent Enquiries</span></div>
+        <table><thead><tr><th>Name</th><th>Email</th><th>Message</th><th>Date</th></tr></thead>
+        <tbody id="recentContacts"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody></table>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Recent Bookings</span></div>
+        <table><thead><tr><th>Email</th><th>Course ID</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody id="recentBookings"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- TESTIMONIALS -->
+    <div class="page" id="page-testimonials">
+      <div class="page-header">
+        <div class="page-header-text">
+          <h1 class="page-title">Testimonials</h1>
+          <p class="page-sub">Manage "What Our Students Say" section.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('testimonial')">+ Add Testimonial</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">All Testimonials</span>
+          <input class="search-box" placeholder="Search…" oninput="filterTable('testimonialsTable',this.value)">
+        </div>
+        <table id="testimonialsTable">
+          <thead><tr><th>ID</th><th>Name</th><th>Location</th><th>Quote</th><th>Stars</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="testimonialsList"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- GALLERY -->
+    <div class="page" id="page-gallery">
+      <div class="page-header">
+        <div class="page-header-text">
+          <h1 class="page-title">Gallery</h1>
+          <p class="page-sub">Manage "Making Memories" section.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('gallery')">+ Add Item</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">All Gallery Items</span>
+          <input class="search-box" placeholder="Search…" oninput="filterTable('galleryTable',this.value)">
+        </div>
+        <table id="galleryTable">
+          <thead><tr><th>ID</th><th>Icon</th><th>Caption</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="galleryList"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="page" id="page-faq">
+      <div class="page-header">
+        <div class="page-header-text">
+          <h1 class="page-title">FAQ</h1>
+          <p class="page-sub">Manage "Common Questions" section.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('faq')">+ Add Question</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">All FAQ Items</span>
+          <input class="search-box" placeholder="Search…" oninput="filterTable('faqTable',this.value)">
+        </div>
+        <table id="faqTable">
+          <thead><tr><th>ID</th><th>Question</th><th>Answer</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="faqList"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LOCATIONS -->
+    <div class="page" id="page-locations">
+      <div class="page-header">
+        <div class="page-header-text">
+          <h1 class="page-title">Locations</h1>
+          <p class="page-sub">Manage "Our Dive Sites" section.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('location')">+ Add Location</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">All Locations</span>
+          <input class="search-box" placeholder="Search…" oninput="filterTable('locationsTable',this.value)">
+        </div>
+        <table id="locationsTable">
+          <thead><tr><th>ID</th><th>Flag</th><th>Name</th><th>Description</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="locationsList"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SECTIONS -->
+    <div class="page" id="page-sections">
+      <div class="page-header"><div class="page-header-text">
+        <h1 class="page-title">Section Visibility</h1>
+        <p class="page-sub">Enable or disable entire page sections on the public site.</p>
+      </div></div>
+      <div class="sections-grid" id="sectionsList"></div>
+    </div>
+
+    <!-- COURSES -->
+    <div class="page" id="page-courses">
+      <div class="page-header">
+        <div class="page-header-text">
+          <h1 class="page-title">Courses</h1>
+          <p class="page-sub">Create and manage your diving courses.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('course')">+ New Course</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">All Courses</span>
+          <input class="search-box" placeholder="Search courses…" oninput="filterTable('coursesTable',this.value)">
+        </div>
+        <table id="coursesTable">
+          <thead><tr><th>ID</th><th>Title</th><th>Level</th><th>Depth</th><th>Stars</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="coursesList"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- BOOKINGS -->
+    <div class="page" id="page-bookings">
+      <div class="page-header"><div class="page-header-text">
+        <h1 class="page-title">Bookings</h1><p class="page-sub">All course booking requests.</p>
+      </div></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">All Bookings</span>
+          <input class="search-box" placeholder="Search…" oninput="filterTable('bookingsTable',this.value)">
+        </div>
+        <table id="bookingsTable">
+          <thead><tr><th>ID</th><th>Email</th><th>Course ID</th><th>Date</th><th>Status</th><th>Created</th></tr></thead>
+          <tbody id="bookingsList"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CONTACTS -->
+    <div class="page" id="page-contacts">
+      <div class="page-header"><div class="page-header-text">
+        <h1 class="page-title">Contact Enquiries</h1><p class="page-sub">Messages from the contact form.</p>
+      </div></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">All Enquiries</span>
+          <input class="search-box" placeholder="Search…" oninput="filterTable('contactsTable',this.value)">
+        </div>
+        <table id="contactsTable">
+          <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Message</th><th>Received</th></tr></thead>
+          <tbody id="contactsList"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STUDENTS -->
+    <div class="page" id="page-students">
+      <div class="page-header"><div class="page-header-text">
+        <h1 class="page-title">Students</h1><p class="page-sub">Registered user accounts.</p>
+      </div></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">All Students</span>
+          <input class="search-box" placeholder="Search…" oninput="filterTable('studentsTable',this.value)">
+        </div>
+        <table id="studentsTable">
+          <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Provider</th><th>Joined</th></tr></thead>
+          <tbody id="studentsList"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODALS -->
+<!-- Course Modal -->
+<div class="modal-overlay" id="modal-course">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="courseModalTitle">New Course</span>
+      <button class="modal-close" onclick="closeModal('course')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="courseId">
+      <div class="form-group"><label>Title *</label><input id="cTitle" placeholder="e.g. AIDA Level 2 — Open Water"></div>
+      <div class="form-group"><label>Description</label><textarea id="cDesc" placeholder="Brief description…"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Level</label>
+          <select id="cLevel"><option value="">Select level</option><option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option><option value="advanced">Advanced</option>
+            <option value="kids">Kids &amp; Teens</option></select></div>
+        <div class="form-group"><label>Stars</label>
+          <select id="cStars"><option value="1">⭐ 1</option><option value="2">⭐⭐ 2</option>
+            <option value="3">⭐⭐⭐ 3</option><option value="4">⭐⭐⭐⭐ 4</option></select></div>
+      </div>
+      <div class="form-group"><label>Target Depth</label><input id="cDepth" placeholder="e.g. 20m, Pool only"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('course')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCourse()">Save Course</button>
+    </div>
+  </div>
+</div>
+
+<!-- Testimonial Modal -->
+<div class="modal-overlay" id="modal-testimonial">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="testimonialModalTitle">Add Testimonial</span>
+      <button class="modal-close" onclick="closeModal('testimonial')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="testimonialId">
+      <div class="form-row">
+        <div class="form-group"><label>Name *</label><input id="tName" placeholder="Jane Smith"></div>
+        <div class="form-group"><label>Location</label><input id="tLocation" placeholder="Sydney, Australia"></div>
+      </div>
+      <div class="form-group"><label>Quote *</label><textarea id="tQuote" placeholder="Their testimonial…"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Stars</label>
+          <select id="tStars"><option value="5">★★★★★ 5</option><option value="4">★★★★ 4</option>
+            <option value="3">★★★ 3</option></select></div>
+        <div class="form-group"><label>Sort Order</label><input id="tOrder" type="number" value="0" min="0"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('testimonial')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTestimonial()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Gallery Modal -->
+<div class="modal-overlay" id="modal-gallery">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="galleryModalTitle">Add Gallery Item</span>
+      <button class="modal-close" onclick="closeModal('gallery')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="galleryId">
+      <div class="form-row">
+        <div class="form-group"><label>Icon / Emoji</label><input id="gIcon" placeholder="🤿"></div>
+        <div class="form-group"><label>Sort Order</label><input id="gOrder" type="number" value="0" min="0"></div>
+      </div>
+      <div class="form-group"><label>Caption</label><input id="gCaption" placeholder="Short description of this image"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('gallery')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveGallery()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ Modal -->
+<div class="modal-overlay" id="modal-faq">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="faqModalTitle">Add FAQ</span>
+      <button class="modal-close" onclick="closeModal('faq')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="faqId">
+      <div class="form-group"><label>Question *</label><input id="fQuestion" placeholder="Do I need to know how to swim?"></div>
+      <div class="form-group"><label>Answer *</label><textarea id="fAnswer" placeholder="Detailed answer…"></textarea></div>
+      <div class="form-group"><label>Sort Order</label><input id="fOrder" type="number" value="0" min="0"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('faq')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveFAQ()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Location Modal -->
+<div class="modal-overlay" id="modal-location">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="locationModalTitle">Add Location</span>
+      <button class="modal-close" onclick="closeModal('location')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="locationId">
+      <div class="form-row">
+        <div class="form-group"><label>Flag Emoji</label><input id="lFlag" placeholder="🇮🇩"></div>
+        <div class="form-group"><label>Sort Order</label><input id="lOrder" type="number" value="0" min="0"></div>
+      </div>
+      <div class="form-group"><label>Name *</label><input id="lName" placeholder="Bali, Indonesia"></div>
+      <div class="form-group"><label>Description</label><textarea id="lDesc" placeholder="What makes this location special…" style="min-height:80px"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('location')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveLocation()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+let token = '';
+
+// ── AUTH ──────────────────────────────────
+function login() {
+  const t = document.getElementById('tokenInput').value.trim();
+  if (!t) return;
+  token = t;
+  api('GET', '/admin/courses')
+    .then(() => {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      loadDashboard();
+    })
+    .catch(() => {
+      document.getElementById('loginErr').style.display = 'block';
+      token = '';
+    });
+}
+
+function logout() {
+  token = '';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('tokenInput').value = '';
+}
+
+// ── API ───────────────────────────────────
+async function api(method, path, body) {
+  const opts = { method, headers: { 'X-Admin-Token': token, 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  if (!r.ok) throw new Error(r.status);
+  const ct = r.headers.get('content-type') || '';
+  return ct.includes('json') ? r.json() : r.text();
+}
+
+// ── NAV ───────────────────────────────────
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+  const loaders = { dashboard:loadDashboard, testimonials:loadTestimonials, gallery:loadGallery,
+    faq:loadFAQ, locations:loadLocations, sections:loadSections,
+    courses:loadCourses, bookings:loadBookings, contacts:loadContacts, students:loadStudents };
+  if (loaders[id]) loaders[id]();
+}
+
+// ── MODAL ─────────────────────────────────
+function openModal(type, data) {
+  const titles = { course:'New Course', testimonial:'Add Testimonial', gallery:'Add Gallery Item',
+    faq:'Add FAQ', location:'Add Location' };
+  document.getElementById(type+'ModalTitle').textContent = data ? 'Edit ' + titles[type].replace('Add ','').replace('New ','') : titles[type];
+  document.getElementById(type+'Id').value = data?.id || '';
+  if (type === 'course') {
+    document.getElementById('cTitle').value = data?.title || '';
+    document.getElementById('cDesc').value  = data?.description || '';
+    document.getElementById('cLevel').value = data?.level || '';
+    document.getElementById('cStars').value = data?.stars || 1;
+    document.getElementById('cDepth').value = data?.depth || '';
+  } else if (type === 'testimonial') {
+    document.getElementById('tName').value     = data?.name || '';
+    document.getElementById('tLocation').value = data?.location || '';
+    document.getElementById('tQuote').value    = data?.quote || '';
+    document.getElementById('tStars').value    = data?.stars || 5;
+    document.getElementById('tOrder').value    = data?.sort_order || 0;
+  } else if (type === 'gallery') {
+    document.getElementById('gIcon').value    = data?.icon || '🤿';
+    document.getElementById('gCaption').value = data?.caption || '';
+    document.getElementById('gOrder').value   = data?.sort_order || 0;
+  } else if (type === 'faq') {
+    document.getElementById('fQuestion').value = data?.question || '';
+    document.getElementById('fAnswer').value   = data?.answer || '';
+    document.getElementById('fOrder').value    = data?.sort_order || 0;
+  } else if (type === 'location') {
+    document.getElementById('lFlag').value  = data?.flag || '';
+    document.getElementById('lName').value  = data?.name || '';
+    document.getElementById('lDesc').value  = data?.description || '';
+    document.getElementById('lOrder').value = data?.sort_order || 0;
+  }
+  document.getElementById('modal-' + type).classList.add('open');
+}
+
+function closeModal(type) { document.getElementById('modal-' + type).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ── TOAST ─────────────────────────────────
+function toast(msg, err) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (err ? ' error' : '');
+  setTimeout(() => el.className = 'toast', 3000);
+}
+
+// ── TABLE FILTER ──────────────────────────
+function filterTable(id, q) {
+  document.querySelectorAll('#' + id + ' tbody tr').forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function fmtDate(s) { return s ? new Date(s).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—'; }
+function enabledBadge(v) { return v ? '<span class="badge badge-green">Enabled</span>' : '<span class="badge badge-gray">Disabled</span>'; }
+function statusBadge(s) {
+  const m = {pending:'badge-amber',confirmed:'badge-green',cancelled:'badge-red',completed:'badge-blue'};
+  return `<span class="badge ${m[s]||'badge-gray'}">${s||'pending'}</span>`;
+}
+
+// ── DASHBOARD ─────────────────────────────
+async function loadDashboard() {
+  try {
+    const [courses,bookings,contacts,students] = await Promise.all([
+      api('GET','/admin/courses'), api('GET','/admin/bookings'),
+      api('GET','/admin/contacts'), api('GET','/admin/students')
+    ]);
+    document.getElementById('dCourses').textContent  = courses.length;
+    document.getElementById('dBookings').textContent = bookings.length;
+    document.getElementById('dContacts').textContent = contacts.length;
+    document.getElementById('dStudents').textContent = students.length;
+    document.getElementById('recentContacts').innerHTML =
+      contacts.slice(0,5).map(c=>`<tr><td>${c.name||'—'}</td><td>${c.email}</td>
+        <td class="truncate">${c.message}</td><td>${fmtDate(c.created_at)}</td></tr>`).join('') ||
+      '<tr><td colspan="4" class="empty">No enquiries yet.</td></tr>';
+    document.getElementById('recentBookings').innerHTML =
+      bookings.slice(0,5).map(b=>`<tr><td>${b.user_email}</td><td>#${b.course_id}</td>
+        <td>${b.date||'—'}</td><td>${statusBadge(b.status)}</td></tr>`).join('') ||
+      '<tr><td colspan="4" class="empty">No bookings yet.</td></tr>';
+  } catch { toast('Failed to load dashboard',true); }
+}
+
+// ── TESTIMONIALS ──────────────────────────
+async function loadTestimonials() {
+  try {
+    const items = await api('GET','/admin/testimonials');
+    document.getElementById('testimonialsList').innerHTML = items.length
+      ? items.map(t=>`<tr>
+          <td>#${t.id}</td><td>${t.name}</td><td>${t.location||'—'}</td>
+          <td class="quote-cell">${t.quote}</td>
+          <td>${'★'.repeat(t.stars||5)}</td><td>${t.sort_order}</td>
+          <td>${enabledBadge(t.enabled)}</td>
+          <td><div class="actions">
+            <button class="btn btn-sm btn-ghost" onclick="editTestimonial(${t.id})">Edit</button>
+            <button class="btn btn-sm ${t.enabled?'btn-toggle-on':'btn-toggle-off'}" onclick="toggleItem('testimonials',${t.id},loadTestimonials)">${t.enabled?'Disable':'Enable'}</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteItem('testimonials',${t.id},loadTestimonials)">Delete</button>
+          </div></td></tr>`).join('')
+      : '<tr><td colspan="8" class="empty">No testimonials yet.</td></tr>';
+  } catch { toast('Failed to load testimonials',true); }
+}
+
+async function editTestimonial(id) {
+  const items = await api('GET','/admin/testimonials');
+  const item = items.find(x=>x.id===id);
+  if (item) openModal('testimonial', item);
+}
+
+async function saveTestimonial() {
+  const id = document.getElementById('testimonialId').value;
+  const payload = { name:document.getElementById('tName').value.trim(),
+    location:document.getElementById('tLocation').value.trim()||null,
+    quote:document.getElementById('tQuote').value.trim(),
+    stars:parseInt(document.getElementById('tStars').value),
+    sort_order:parseInt(document.getElementById('tOrder').value)||0 };
+  if (!payload.name || !payload.quote) { toast('Name and quote are required',true); return; }
+  try {
+    await api(id?'PUT':'POST', id?`/admin/testimonials/${id}`:'/admin/testimonials', payload);
+    toast(id?'Testimonial updated':'Testimonial added');
+    closeModal('testimonial'); loadTestimonials();
+  } catch { toast('Failed to save',true); }
+}
+
+// ── GALLERY ───────────────────────────────
+async function loadGallery() {
+  try {
+    const items = await api('GET','/admin/gallery');
+    document.getElementById('galleryList').innerHTML = items.length
+      ? items.map(g=>`<tr>
+          <td>#${g.id}</td><td style="font-size:1.75rem">${g.icon||'🤿'}</td>
+          <td>${g.caption||'—'}</td><td>${g.sort_order}</td>
+          <td>${enabledBadge(g.enabled)}</td>
+          <td><div class="actions">
+            <button class="btn btn-sm btn-ghost" onclick="editGallery(${g.id})">Edit</button>
+            <button class="btn btn-sm ${g.enabled?'btn-toggle-on':'btn-toggle-off'}" onclick="toggleItem('gallery',${g.id},loadGallery)">${g.enabled?'Disable':'Enable'}</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteItem('gallery',${g.id},loadGallery)">Delete</button>
+          </div></td></tr>`).join('')
+      : '<tr><td colspan="6" class="empty">No gallery items yet.</td></tr>';
+  } catch { toast('Failed to load gallery',true); }
+}
+
+async function editGallery(id) {
+  const items = await api('GET','/admin/gallery');
+  const item = items.find(x=>x.id===id);
+  if (item) openModal('gallery', item);
+}
+
+async function saveGallery() {
+  const id = document.getElementById('galleryId').value;
+  const payload = { icon:document.getElementById('gIcon').value.trim()||'🤿',
+    caption:document.getElementById('gCaption').value.trim()||null,
+    sort_order:parseInt(document.getElementById('gOrder').value)||0 };
+  try {
+    await api(id?'PUT':'POST', id?`/admin/gallery/${id}`:'/admin/gallery', payload);
+    toast(id?'Item updated':'Item added');
+    closeModal('gallery'); loadGallery();
+  } catch { toast('Failed to save',true); }
+}
+
+// ── FAQ ───────────────────────────────────
+async function loadFAQ() {
+  try {
+    const items = await api('GET','/admin/faq');
+    document.getElementById('faqList').innerHTML = items.length
+      ? items.map(f=>`<tr>
+          <td>#${f.id}</td>
+          <td class="truncate">${f.question}</td>
+          <td class="truncate">${f.answer}</td>
+          <td>${f.sort_order}</td>
+          <td>${enabledBadge(f.enabled)}</td>
+          <td><div class="actions">
+            <button class="btn btn-sm btn-ghost" onclick="editFAQ(${f.id})">Edit</button>
+            <button class="btn btn-sm ${f.enabled?'btn-toggle-on':'btn-toggle-off'}" onclick="toggleItem('faq',${f.id},loadFAQ)">${f.enabled?'Disable':'Enable'}</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteItem('faq',${f.id},loadFAQ)">Delete</button>
+          </div></td></tr>`).join('')
+      : '<tr><td colspan="6" class="empty">No FAQ items yet.</td></tr>';
+  } catch { toast('Failed to load FAQ',true); }
+}
+
+async function editFAQ(id) {
+  const items = await api('GET','/admin/faq');
+  const item = items.find(x=>x.id===id);
+  if (item) openModal('faq', item);
+}
+
+async function saveFAQ() {
+  const id = document.getElementById('faqId').value;
+  const payload = { question:document.getElementById('fQuestion').value.trim(),
+    answer:document.getElementById('fAnswer').value.trim(),
+    sort_order:parseInt(document.getElementById('fOrder').value)||0 };
+  if (!payload.question || !payload.answer) { toast('Question and answer are required',true); return; }
+  try {
+    await api(id?'PUT':'POST', id?`/admin/faq/${id}`:'/admin/faq', payload);
+    toast(id?'FAQ updated':'FAQ added');
+    closeModal('faq'); loadFAQ();
+  } catch { toast('Failed to save',true); }
+}
+
+// ── LOCATIONS ─────────────────────────────
+async function loadLocations() {
+  try {
+    const items = await api('GET','/admin/locations');
+    document.getElementById('locationsList').innerHTML = items.length
+      ? items.map(l=>`<tr>
+          <td>#${l.id}</td><td style="font-size:1.5rem">${l.flag||'—'}</td>
+          <td><strong>${l.name}</strong></td>
+          <td class="truncate">${l.description||'—'}</td>
+          <td>${l.sort_order}</td>
+          <td>${enabledBadge(l.enabled)}</td>
+          <td><div class="actions">
+            <button class="btn btn-sm btn-ghost" onclick="editLocation(${l.id})">Edit</button>
+            <button class="btn btn-sm ${l.enabled?'btn-toggle-on':'btn-toggle-off'}" onclick="toggleItem('locations',${l.id},loadLocations)">${l.enabled?'Disable':'Enable'}</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteItem('locations',${l.id},loadLocations)">Delete</button>
+          </div></td></tr>`).join('')
+      : '<tr><td colspan="7" class="empty">No locations yet.</td></tr>';
+  } catch { toast('Failed to load locations',true); }
+}
+
+async function editLocation(id) {
+  const items = await api('GET','/admin/locations');
+  const item = items.find(x=>x.id===id);
+  if (item) openModal('location', item);
+}
+
+async function saveLocation() {
+  const id = document.getElementById('locationId').value;
+  const payload = { flag:document.getElementById('lFlag').value.trim()||null,
+    name:document.getElementById('lName').value.trim(),
+    description:document.getElementById('lDesc').value.trim()||null,
+    sort_order:parseInt(document.getElementById('lOrder').value)||0 };
+  if (!payload.name) { toast('Name is required',true); return; }
+  try {
+    await api(id?'PUT':'POST', id?`/admin/locations/${id}`:'/admin/locations', payload);
+    toast(id?'Location updated':'Location added');
+    closeModal('location'); loadLocations();
+  } catch { toast('Failed to save',true); }
+}
+
+// ── SECTIONS ──────────────────────────────
+async function loadSections() {
+  try {
+    const sections = await api('GET','/admin/sections');
+    document.getElementById('sectionsList').innerHTML = sections.map(s=>`
+      <div class="section-toggle-card">
+        <div><h3>${s.label}</h3><p>Key: <code>${s.key}</code></p></div>
+        <label class="toggle-switch">
+          <input type="checkbox" ${s.enabled?'checked':''} onchange="toggleSection('${s.key}',this)">
+          <div class="toggle-track"></div>
+        </label>
+      </div>`).join('');
+  } catch { toast('Failed to load sections',true); }
+}
+
+async function toggleSection(key, checkbox) {
+  try {
+    await api('POST', `/admin/sections/${key}/toggle`);
+    toast(`Section ${checkbox.checked ? 'enabled' : 'disabled'}`);
+  } catch { toast('Failed',true); checkbox.checked = !checkbox.checked; }
+}
+
+// ── SHARED TOGGLE / DELETE ─────────────────
+async function toggleItem(resource, id, reload) {
+  try { await api('POST', `/admin/${resource}/${id}/toggle`); toast('Updated'); reload(); }
+  catch { toast('Failed',true); }
+}
+
+async function deleteItem(resource, id, reload) {
+  if (!confirm('Delete this item? This cannot be undone.')) return;
+  try { await api('DELETE', `/admin/${resource}/${id}`); toast('Deleted'); reload(); }
+  catch { toast('Failed',true); }
+}
+
+// ── COURSES ───────────────────────────────
+async function loadCourses() {
+  try {
+    const courses = await api('GET','/admin/courses');
+    const tbody = document.getElementById('coursesList');
+    if (!courses.length) { tbody.innerHTML='<tr><td colspan="7" class="empty">No courses yet.</td></tr>'; return; }
+    tbody.innerHTML = courses.map(c=>`<tr>
+      <td>#${c.id}</td>
+      <td><strong>${c.title}</strong>${c.description?`<br><span style="color:var(--muted);font-size:.8rem">${c.description.slice(0,50)}…</span>`:''}</td>
+      <td>${c.level||'—'}</td><td>${c.depth||'—'}</td><td>${'⭐'.repeat(c.stars||1)}</td>
+      <td>${courseStatusBadge(c)}</td>
+      <td><div class="actions">
+        <button class="btn btn-sm btn-ghost" onclick="editCourse(${c.id})">Edit</button>
+        ${c.suspended||c.archived
+          ? `<button class="btn btn-sm btn-success" onclick="restoreCourse(${c.id})">Restore</button>`
+          : `<button class="btn btn-sm btn-warning" onclick="suspendCourse(${c.id})">Suspend</button>
+             <button class="btn btn-sm btn-danger" onclick="archiveCourse(${c.id})">Archive</button>`}
+        <button class="btn btn-sm btn-danger" onclick="deleteCourse(${c.id})">Delete</button>
+      </div></td></tr>`).join('');
+  } catch { toast('Failed to load courses',true); }
+}
+
+function courseStatusBadge(c) {
+  if (c.archived)  return '<span class="badge badge-gray">Archived</span>';
+  if (c.suspended) return '<span class="badge badge-amber">Suspended</span>';
+  return '<span class="badge badge-green">Active</span>';
+}
+
+async function editCourse(id) {
+  const courses = await api('GET','/admin/courses');
+  const c = courses.find(x=>x.id===id);
+  if (c) openModal('course', c);
+}
+
+async function saveCourse() {
+  const id = document.getElementById('courseId').value;
+  const payload = { title:document.getElementById('cTitle').value.trim(),
+    description:document.getElementById('cDesc').value.trim()||null,
+    level:document.getElementById('cLevel').value||null,
+    stars:parseInt(document.getElementById('cStars').value),
+    depth:document.getElementById('cDepth').value.trim()||null };
+  if (!payload.title) { toast('Title is required',true); return; }
+  try {
+    await api(id?'PUT':'POST', id?`/admin/courses/${id}`:'/admin/courses', payload);
+    toast(id?'Course updated':'Course created');
+    closeModal('course'); loadCourses();
+  } catch { toast('Failed to save',true); }
+}
+
+async function suspendCourse(id) {
+  if (!confirm('Suspend this course?')) return;
+  try { await api('POST',`/admin/courses/${id}/suspend`); toast('Suspended'); loadCourses(); }
+  catch { toast('Failed',true); }
+}
+
+async function archiveCourse(id) {
+  if (!confirm('Archive this course?')) return;
+  try { await api('POST',`/admin/courses/${id}/archive`); toast('Archived'); loadCourses(); }
+  catch { toast('Failed',true); }
+}
+
+async function restoreCourse(id) {
+  try { await api('POST',`/admin/courses/${id}/restore`); toast('Restored'); loadCourses(); }
+  catch { toast('Failed',true); }
+}
+
+async function deleteCourse(id) {
+  if (!confirm('Permanently delete this course?')) return;
+  try { await api('DELETE',`/admin/courses/${id}`); toast('Deleted'); loadCourses(); }
+  catch { toast('Failed',true); }
+}
+
+// ── BOOKINGS ──────────────────────────────
+async function loadBookings() {
+  try {
+    const items = await api('GET','/admin/bookings');
+    document.getElementById('bookingsList').innerHTML = items.length
+      ? items.map(b=>`<tr><td>#${b.id}</td><td>${b.user_email}</td><td>#${b.course_id}</td>
+          <td>${b.date||'—'}</td><td>${statusBadge(b.status)}</td><td>${fmtDate(b.created_at)}</td></tr>`).join('')
+      : '<tr><td colspan="6" class="empty">No bookings yet.</td></tr>';
+  } catch { toast('Failed',true); }
+}
+
+// ── CONTACTS ──────────────────────────────
+async function loadContacts() {
+  try {
+    const items = await api('GET','/admin/contacts');
+    document.getElementById('contactsList').innerHTML = items.length
+      ? items.map(c=>`<tr><td>#${c.id}</td><td>${c.name||'—'}</td><td>${c.email}</td>
+          <td class="truncate">${c.message}</td><td>${fmtDate(c.created_at)}</td></tr>`).join('')
+      : '<tr><td colspan="5" class="empty">No enquiries yet.</td></tr>';
+  } catch { toast('Failed',true); }
+}
+
+// ── STUDENTS ──────────────────────────────
+async function loadStudents() {
+  try {
+    const items = await api('GET','/admin/students');
+    document.getElementById('studentsList').innerHTML = items.length
+      ? items.map(s=>`<tr><td>#${s.id}</td><td>${s.name||'—'}</td><td>${s.email}</td>
+          <td>${s.provider?`<span class="badge badge-blue">${s.provider}</span>`:'—'}</td>
+          <td>${fmtDate(s.created_at)}</td></tr>`).join('')
+      : '<tr><td colspan="5" class="empty">No students yet.</td></tr>';
+  } catch { toast('Failed',true); }
+}
+</script>
+</body>
+</html>

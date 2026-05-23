@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Diving with John — AIDA Freediving &amp; Scuba Courses</title>
+  <meta name="description" content="Professional freediving and scuba instruction with John. AIDA certified courses for all levels — beginners to advanced. World-class dive sites globally.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Display:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:    #0b1f3a;
+      --navy2:   #0e3560;
+      --teal:    #0891b2;
+      --cyan:    #06b6d4;
+      --sky:     #e0f7ff;
+      --bg:      #f5fbff;
+      --white:   #ffffff;
+      --text:    #0f172a;
+      --muted:   #64748b;
+      --border:  #d0eaf8;
+      --card:    #ffffff;
+      --radius:  16px;
+      --shadow:  0 4px 28px rgba(8,145,178,.10);
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .nav-brand { font-family:'Inter Display',sans-serif; font-size:1.2rem; font-weight:800;
+      color: var(--navy); text-decoration:none; letter-spacing:-.02em; }
+    .nav-brand span { color: var(--cyan); }
+    .nav-links { display:flex; align-items:center; gap:2rem; list-style:none; }
+    .nav-links a { color: var(--muted); text-decoration:none; font-size:.875rem; font-weight:500; transition:color .2s; }
+    .nav-links a:hover { color: var(--teal); }
+    .nav-cta { background: var(--cyan) !important; color: var(--navy) !important;
+      font-weight:700 !important; padding:.5rem 1.25rem !important; border-radius:8px !important; transition:background .2s !important; }
+    .nav-cta:hover { background: #22d3ee !important; }
+    .nav-toggle { display:none; background:none; border:none; cursor:pointer; padding:.25rem; }
+    .nav-toggle span { display:block; width:22px; height:2px; background:var(--navy); margin:4px 0; transition:.3s; }
+
+    /* ── HERO ── */
+    #hero {
+      background: linear-gradient(135deg, #e8f8ff 0%, #cdf0fc 30%, #a5e3f8 60%, #7dcef3 100%);
+      padding: 7rem 2rem 6rem; text-align: center; position: relative; overflow: hidden;
+    }
+    #hero::before {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 80px;
+      background: linear-gradient(to bottom right, transparent 49%, var(--bg) 50%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: rgba(8,145,178,.12); border: 1px solid rgba(8,145,178,.3);
+      color: var(--teal); font-size: .8rem; font-weight: 700;
+      padding: .375rem 1rem; border-radius: 100px; margin-bottom: 2rem;
+    }
+    .hero-badge .stars { color: #f59e0b; }
+    #hero h1 {
+      font-family: 'Inter Display', sans-serif;
+      font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800;
+      line-height: 1.1; letter-spacing: -.03em;
+      color: var(--navy); max-width: 800px; margin: 0 auto 1.5rem;
+    }
+    #hero h1 em { font-style: normal; color: var(--teal); }
+    #hero p { font-size: 1.125rem; color: #2d6e8e; max-width: 560px; margin: 0 auto 2.5rem; }
+    .hero-actions { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+    .btn-primary { background:var(--teal); color:var(--white); font-weight:700; font-size:1rem;
+      padding:.85rem 2rem; border-radius:10px; text-decoration:none; border:none; cursor:pointer;
+      transition:background .2s,transform .15s; display:inline-block; }
+    .btn-primary:hover { background:var(--cyan); transform:translateY(-1px); }
+    .btn-outline { background:transparent; color:var(--navy); font-weight:600; font-size:1rem;
+      padding:.85rem 2rem; border-radius:10px; border:2px solid rgba(8,145,178,.4);
+      text-decoration:none; cursor:pointer; transition:border-color .2s,background .2s; display:inline-block; }
+    .btn-outline:hover { border-color:var(--teal); background:rgba(8,145,178,.07); }
+
+    /* ── LAYOUT ── */
+    section { padding: 5rem 2rem; }
+    .container { max-width: 1160px; margin: 0 auto; }
+    .section-tag { font-size:.75rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--teal); margin-bottom:.75rem; }
+    .section-title { font-family:'Inter Display',sans-serif; font-size:clamp(1.75rem,3.5vw,2.75rem);
+      font-weight:800; letter-spacing:-.03em; line-height:1.15; margin-bottom:1rem; }
+    .section-sub { font-size:1.0625rem; color:var(--muted); max-width:560px; margin-bottom:3rem; }
+    .text-center { text-align:center; }
+    .text-center .section-sub { margin-left:auto; margin-right:auto; }
+
+    /* ── ABOUT ── */
+    #about { background: var(--white); }
+    .about-grid { display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:center; }
+    .about-text p { color:var(--muted); margin-bottom:1rem; font-size:1.0625rem; }
+    .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; margin-top:2.5rem; }
+    .stat-card { background:linear-gradient(135deg,#f0fbff,#e0f5fd); border-radius:var(--radius);
+      padding:1.5rem; border:1px solid var(--border); }
+    .stat-number { font-family:'Inter Display',sans-serif; font-size:2rem; font-weight:800; color:var(--teal); letter-spacing:-.03em; }
+    .stat-label { font-size:.8125rem; color:var(--muted); margin-top:.25rem; }
+    .about-image { background:linear-gradient(135deg,#a5e3f8 0%,#0891b2 50%,#0b1f3a 100%);
+      border-radius:var(--radius); min-height:420px; display:flex; align-items:center;
+      justify-content:center; font-size:6rem; opacity:.8; }
+
+    /* ── COURSES ── */
+    #courses { background: linear-gradient(180deg,var(--bg) 0%,#e8f6fd 100%); }
+    .courses-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1.5rem; }
+    .course-card { background:var(--white); border-radius:var(--radius); border:1px solid var(--border);
+      padding:2rem; box-shadow:var(--shadow); display:flex; flex-direction:column;
+      transition:transform .2s,box-shadow .2s; }
+    .course-card:hover { transform:translateY(-4px); box-shadow:0 14px 42px rgba(8,145,178,.16); }
+    .course-level { display:inline-flex; align-items:center; gap:.4rem; font-size:.75rem;
+      font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--teal);
+      background:#ddf4ff; border-radius:6px; padding:.25rem .625rem; margin-bottom:1.25rem; width:fit-content; }
+    .course-card h3 { font-family:'Inter Display',sans-serif; font-size:1.25rem; font-weight:700;
+      letter-spacing:-.02em; margin-bottom:.75rem; }
+    .course-card p { color:var(--muted); font-size:.9375rem; flex:1; margin-bottom:1.25rem; }
+    .course-features { list-style:none; margin-bottom:1.5rem; }
+    .course-features li { font-size:.875rem; color:var(--muted); padding:.3rem 0;
+      border-bottom:1px solid var(--border); display:flex; align-items:center; gap:.5rem; }
+    .course-features li::before { content:'✓'; color:var(--teal); font-weight:700; }
+    .course-meta { font-size:.8125rem; color:var(--muted); margin-bottom:1.25rem; }
+    .course-meta span { color:var(--text); font-weight:600; }
+    .btn-enroll { background:var(--navy); color:var(--white); font-weight:600; font-size:.9rem;
+      padding:.75rem 1.25rem; border-radius:10px; border:none; cursor:pointer;
+      text-align:center; text-decoration:none; display:block; transition:background .2s; }
+    .btn-enroll:hover { background:var(--teal); }
+
+    /* ── LOCATIONS ── */
+    #locations { background: var(--white); }
+    .locations-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:1.25rem; }
+    .location-card { background:linear-gradient(135deg,#f5fbff,#eaf6fd); border:1px solid var(--border);
+      border-radius:var(--radius); padding:1.75rem; transition:border-color .2s,box-shadow .2s; }
+    .location-card:hover { border-color:var(--cyan); box-shadow:var(--shadow); }
+    .location-flag { font-size:2.5rem; margin-bottom:1rem; }
+    .location-card h3 { font-weight:700; font-size:1.0625rem; margin-bottom:.375rem; }
+    .location-card p { font-size:.875rem; color:var(--muted); }
+
+    /* ── PROCESS ── */
+    #process { background: linear-gradient(135deg, var(--navy) 0%, #0d3060 50%, #0e4a8a 100%); color:var(--white); }
+    #process .section-title { color:var(--white); }
+    #process .section-sub { color:rgba(255,255,255,.65); }
+    #process .section-tag { color:var(--cyan); }
+    .process-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.5rem; margin-top:1rem; }
+    .process-step { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12);
+      border-radius:var(--radius); padding:2rem; transition:background .2s; }
+    .process-step:hover { background:rgba(6,182,212,.12); }
+    .step-num { font-family:'Inter Display',sans-serif; font-size:2.5rem; font-weight:800;
+      color:var(--cyan); opacity:.5; margin-bottom:.75rem; letter-spacing:-.04em; }
+    .process-step h3 { font-weight:700; font-size:1.125rem; margin-bottom:.5rem; }
+    .process-step p { font-size:.9rem; color:rgba(255,255,255,.6); }
+
+    /* ── TESTIMONIALS ── */
+    #testimonials { background: linear-gradient(180deg,#eaf6fd 0%,var(--bg) 100%); }
+    .testimonials-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.5rem; }
+    .testimonial-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius);
+      padding:2rem; box-shadow:var(--shadow); }
+    .testimonial-stars { color:#f59e0b; font-size:1rem; margin-bottom:1rem; }
+    .testimonial-card blockquote { font-size:.9375rem; color:var(--text); line-height:1.65; font-style:italic; margin-bottom:1.25rem; }
+    .testimonial-author { display:flex; align-items:center; gap:.75rem; }
+    .author-avatar { width:40px; height:40px; border-radius:50%;
+      background:linear-gradient(135deg,var(--teal),var(--cyan)); display:flex;
+      align-items:center; justify-content:center; color:white; font-weight:700; font-size:.875rem; }
+    .author-name { font-weight:600; font-size:.9rem; }
+    .author-location { font-size:.8rem; color:var(--muted); }
+
+    /* ── GALLERY ── */
+    #gallery { background: var(--white); }
+    .gallery-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+    .gallery-item { border-radius:12px; overflow:hidden; aspect-ratio:4/3;
+      display:flex; align-items:center; justify-content:center;
+      font-size:2.5rem; transition:transform .2s; }
+    .gallery-item:hover { transform:scale(1.02); }
+
+    /* ── FAQ ── */
+    #faq { background: linear-gradient(180deg,var(--bg) 0%,#e8f6fd 100%); }
+    .faq-list { max-width:720px; margin:0 auto; }
+    .faq-item { background:var(--white); border:1px solid var(--border); border-radius:12px; margin-bottom:.75rem; overflow:hidden; }
+    .faq-question { width:100%; text-align:left; background:none; border:none; padding:1.25rem 1.5rem;
+      cursor:pointer; font-family:'Inter',sans-serif; font-size:1rem; font-weight:600; color:var(--text);
+      display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+    .faq-question .chevron { color:var(--teal); flex-shrink:0; transition:transform .3s; font-size:1.25rem; }
+    .faq-item.open .chevron { transform:rotate(180deg); }
+    .faq-answer { max-height:0; overflow:hidden; transition:max-height .35s ease,padding .25s;
+      font-size:.9375rem; color:var(--muted); line-height:1.7; padding:0 1.5rem; }
+    .faq-item.open .faq-answer { max-height:300px; padding:0 1.5rem 1.5rem; }
+
+    /* ── CONTACT ── */
+    #contact { background: linear-gradient(135deg, var(--navy) 0%, #0d3060 60%, #0e4a8a 100%); color:var(--white); }
+    #contact .section-title { color:var(--white); }
+    #contact .section-sub { color:rgba(255,255,255,.65); }
+    #contact .section-tag { color:var(--cyan); }
+    .contact-grid { display:grid; grid-template-columns:1fr 1.2fr; gap:4rem; align-items:start; }
+    .contact-info p { color:rgba(255,255,255,.7); font-size:1.0625rem; margin-bottom:2rem; }
+    .contact-detail { display:flex; align-items:flex-start; gap:.875rem; margin-bottom:1.25rem; }
+    .contact-icon { width:40px; height:40px; border-radius:10px; background:rgba(6,182,212,.15);
+      border:1px solid rgba(6,182,212,.25); display:flex; align-items:center; justify-content:center; font-size:1.125rem; flex-shrink:0; }
+    .contact-detail-text h4 { font-weight:600; font-size:.9rem; color:var(--white); }
+    .contact-detail-text p { font-size:.875rem; color:rgba(255,255,255,.6); margin:0; }
+    .contact-form { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12); border-radius:var(--radius); padding:2.5rem; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .form-group { margin-bottom:1.25rem; }
+    .form-group label { display:block; font-size:.875rem; font-weight:500; color:rgba(255,255,255,.8); margin-bottom:.5rem; }
+    .form-group input,.form-group textarea,.form-group select {
+      width:100%; padding:.8rem 1rem; background:rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.18);
+      border-radius:10px; color:var(--white); font-family:'Inter',sans-serif; font-size:.9375rem; outline:none; transition:border-color .2s; }
+    .form-group input::placeholder,.form-group textarea::placeholder { color:rgba(255,255,255,.3); }
+    .form-group input:focus,.form-group textarea:focus,.form-group select:focus { border-color:var(--cyan); }
+    .form-group textarea { resize:vertical; min-height:120px; }
+    .form-group select option { background:var(--navy2); }
+    .form-msg { font-size:.9rem; font-weight:500; text-align:center; padding:.75rem; border-radius:8px; margin-top:1rem; display:none; }
+    .form-msg.success { background:rgba(6,182,212,.15); color:var(--cyan); display:block; }
+    .form-msg.error { background:rgba(239,68,68,.15); color:#f87171; display:block; }
+
+    /* ── FOOTER ── */
+    footer { background:#060f1c; color:rgba(255,255,255,.5); padding:3rem 2rem; }
+    .footer-inner { max-width:1160px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1.5rem; }
+    .footer-brand { font-family:'Inter Display',sans-serif; font-size:1.125rem; font-weight:800; color:var(--white); text-decoration:none; }
+    .footer-brand span { color:var(--cyan); }
+    .footer-links { display:flex; gap:1.5rem; flex-wrap:wrap; }
+    .footer-links a { color:rgba(255,255,255,.45); text-decoration:none; font-size:.875rem; transition:color .2s; }
+    .footer-links a:hover { color:var(--cyan); }
+    .footer-copy { font-size:.8125rem; margin-top:.5rem; }
+
+    /* ── GALLERY COLORS ── */
+    .gc0 { background:linear-gradient(135deg,#a5e3f8,#0891b2); }
+    .gc1 { background:linear-gradient(135deg,#7dcef3,#0e4a8a); }
+    .gc2 { background:linear-gradient(135deg,#cdf0fc,#0284c7); }
+    .gc3 { background:linear-gradient(135deg,#e0f7ff,#06b6d4); }
+    .gc4 { background:linear-gradient(135deg,#bae6fd,#0369a1); }
+    .gc5 { background:linear-gradient(135deg,#93c5fd,#1e40af); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:900px) {
+      .about-grid { grid-template-columns:1fr; }
+      .about-image { min-height:260px; }
+      .contact-grid { grid-template-columns:1fr; gap:2.5rem; }
+      .gallery-grid { grid-template-columns:repeat(2,1fr); }
+      .form-row { grid-template-columns:1fr; }
+    }
+    @media (max-width:680px) {
+      .nav-links { display:none; position:absolute; top:64px; left:0; right:0; background:var(--white);
+        flex-direction:column; padding:1.5rem 2rem; gap:1.25rem; border-bottom:1px solid var(--border); }
+      .nav-links.open { display:flex; }
+      .nav-toggle { display:block; }
+      section { padding:3.5rem 1.5rem; }
+      .stats-row { grid-template-columns:1fr 1fr; }
+      .gallery-grid { grid-template-columns:1fr; }
+      .footer-inner { flex-direction:column; text-align:center; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-brand">Diving<span>withJohn</span></a>
+  <button class="nav-toggle" aria-label="Toggle menu" onclick="document.getElementById('navLinks').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#about">About</a></li>
+    <li><a href="#courses">Courses</a></li>
+    <li><a href="#locations">Locations</a></li>
+    <li><a href="#process">How It Works</a></li>
+    <li><a href="#testimonials">Testimonials</a></li>
+    <li><a href="#gallery">Gallery</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#contact" class="nav-cta">Book Now</a></li>
+  </ul>
+</nav>
+
+<section id="hero">
+  <div class="container">
+    <div class="hero-badge"><span class="stars">★★★★★</span> 4.9/5 — Rated by 500+ students</div>
+    <h1>Whether you're a complete beginner or chasing <em>the deep blue</em>, we have the perfect dive for you.</h1>
+    <p>AIDA-certified freediving instruction at world-class dive sites. Professional, patient, and passionate about the ocean.</p>
+    <div class="hero-actions">
+      <a href="#courses" class="btn-primary">Explore Courses</a>
+      <a href="#contact" class="btn-outline">Get in Touch</a>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-text">
+        <p class="section-tag">About Us</p>
+        <h2 class="section-title">World-class diving instruction, right at your pace.</h2>
+        <p>Hi, I'm John — a certified AIDA instructor with over a decade of experience guiding students from their first breath-hold to advanced freediving depths. My approach is calm, methodical, and always focused on safety and fun.</p>
+        <p>Whether you want to unlock the silent world of freediving, earn your AIDA certification, or simply explore the reef — there's a course here for you.</p>
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-number">500+</div><div class="stat-label">Students trained worldwide</div></div>
+          <div class="stat-card"><div class="stat-number">98%</div><div class="stat-label">Student satisfaction rate</div></div>
+          <div class="stat-card"><div class="stat-number">12+</div><div class="stat-label">Years of certified instruction</div></div>
+        </div>
+      </div>
+      <div class="about-image" role="img" aria-label="Freediving">🤿</div>
+    </div>
+  </div>
+</section>
+
+<section id="courses">
+  <div class="container">
+    <div class="text-center">
+      <p class="section-tag">Courses</p>
+      <h2 class="section-title">Find Your Depth</h2>
+      <p class="section-sub">From pool sessions to open-water dives — pick the course that matches where you are today.</p>
+    </div>
+    <div class="courses-grid" id="coursesGrid">
+      <!-- Static fallback cards shown until API loads -->
+      <div class="course-card">
+        <div class="course-level">⭐ Beginner</div>
+        <h3>AIDA Level 1 — Intro Freediving</h3>
+        <p>Your very first step into freediving. Pool-based sessions focused on breath control, relaxation, and static apnea.</p>
+        <ul class="course-features">
+          <li>2-day pool programme</li><li>All equipment provided</li>
+          <li>AIDA certification included</li><li>Max depth: pool only</li>
+        </ul>
+        <a href="#contact" class="btn-enroll">Enrol Now</a>
+      </div>
+      <div class="course-card">
+        <div class="course-level">⭐⭐ Intermediate</div>
+        <h3>AIDA Level 2 — Open Water</h3>
+        <p>Take your freediving into the open ocean. Learn equalisation, duck dives, and safe ascent techniques to 20m.</p>
+        <ul class="course-features">
+          <li>3-day pool + open water</li><li>Video analysis sessions</li>
+          <li>AIDA 2 certification</li><li>Target depth: 20m</li>
+        </ul>
+        <a href="#contact" class="btn-enroll">Enrol Now</a>
+      </div>
+      <div class="course-card">
+        <div class="course-level">⭐⭐⭐ Advanced</div>
+        <h3>AIDA Level 3 — Advanced Freediving</h3>
+        <p>Push deeper with personalised 1-on-1 coaching, advanced equalisation techniques, and performance training.</p>
+        <ul class="course-features">
+          <li>4-day intensive programme</li><li>1-on-1 coaching sessions</li>
+          <li>AIDA 3 certification</li><li>Target depth: 40m</li>
+        </ul>
+        <a href="#contact" class="btn-enroll">Enrol Now</a>
+      </div>
+      <div class="course-card">
+        <div class="course-level">🐬 Kids &amp; Teens</div>
+        <h3>Junior Ocean Explorers</h3>
+        <p>Fun, safe introduction to snorkelling and breath-holding for children aged 8–16. Lifeguards on duty at all times.</p>
+        <ul class="course-features">
+          <li>Weekly half-day camps</li><li>Certified lifeguards present</li>
+          <li>Maximum group size: 8</li><li>Ages 8–16 welcome</li>
+        </ul>
+        <a href="#contact" class="btn-enroll">Enrol Now</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="locations">
+  <div class="container">
+    <div class="text-center">
+      <p class="section-tag">Locations</p>
+      <h2 class="section-title">Our Dive Sites</h2>
+      <p class="section-sub">Training at some of the world's most spectacular underwater destinations.</p>
+    </div>
+    <div class="locations-grid" id="locationsGrid">
+      <div style="text-align:center;color:var(--muted);grid-column:1/-1;padding:2rem">Loading…</div>
+    </div>
+  </div>
+</section>
+
+<section id="process">
+  <div class="container">
+    <div class="text-center">
+      <p class="section-tag">How It Works</p>
+      <h2 class="section-title">Surface to Depth</h2>
+      <p class="section-sub" style="color:rgba(255,255,255,.6)">A clear, structured progression that keeps every student safe and confident at every stage.</p>
+    </div>
+    <div class="process-grid">
+      <div class="process-step"><div class="step-num">01</div><h3>Awareness</h3><p>Understand the physiology of breath-holding — what happens in your body and how to work with it, not against it.</p></div>
+      <div class="process-step"><div class="step-num">02</div><h3>Breathing</h3><p>Master diaphragmatic breathing, recovery breaths, and pre-dive preparation techniques on land and in the pool.</p></div>
+      <div class="process-step"><div class="step-num">03</div><h3>Equalisation</h3><p>Learn Frenzel and mouthfill equalisation to descend comfortably without ear pain at any depth.</p></div>
+      <div class="process-step"><div class="step-num">04</div><h3>Pool Training</h3><p>Static and dynamic apnea sessions in a controlled environment to build confidence and extend breath-hold time.</p></div>
+      <div class="process-step"><div class="step-num">05</div><h3>Open Water</h3><p>Transfer your skills to the ocean — duck dives, constant weight descents, and buddy safety protocols.</p></div>
+      <div class="process-step"><div class="step-num">06</div><h3>Depth &amp; Beyond</h3><p>Push personal records, refine technique, and progress through AIDA levels with ongoing mentorship.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="testimonials">
+  <div class="container">
+    <div class="text-center">
+      <p class="section-tag">Testimonials</p>
+      <h2 class="section-title">What Our Students Say</h2>
+      <p class="section-sub">Real words from real divers — from first breath-holds to personal depth records.</p>
+    </div>
+    <div class="testimonials-grid" id="testimonialsGrid">
+      <div style="text-align:center;color:var(--muted);grid-column:1/-1;padding:2rem">Loading…</div>
+    </div>
+  </div>
+</section>
+
+<section id="gallery">
+  <div class="container">
+    <div class="text-center">
+      <p class="section-tag">Gallery</p>
+      <h2 class="section-title">Making Memories</h2>
+      <p class="section-sub">Moments from training sessions, open water dives, and unforgettable ocean encounters.</p>
+    </div>
+    <div class="gallery-grid" id="galleryGrid">
+      <div style="text-align:center;color:var(--muted);grid-column:1/-1;padding:2rem">Loading…</div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="container">
+    <div class="text-center">
+      <p class="section-tag">FAQ</p>
+      <h2 class="section-title">Common Questions</h2>
+      <p class="section-sub">Everything you need to know before your first dive.</p>
+    </div>
+    <div class="faq-list" id="faqList">
+      <div style="text-align:center;color:var(--muted);padding:2rem">Loading…</div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="container">
+    <div class="contact-grid">
+      <div class="contact-info">
+        <p class="section-tag">Contact</p>
+        <h2 class="section-title">Ready to dive in?</h2>
+        <p>Fill in the form and John will get back to you within 24 hours with availability, pricing, and everything you need to get started.</p>
+        <div class="contact-detail">
+          <div class="contact-icon">📧</div>
+          <div class="contact-detail-text"><h4>Email</h4><p>hello@divingwithjohn.com</p></div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-icon">📍</div>
+          <div class="contact-detail-text"><h4>Base Location</h4><p>Bali, Indonesia (worldwide travel available)</p></div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-icon">🕐</div>
+          <div class="contact-detail-text"><h4>Response Time</h4><p>Usually within 24 hours</p></div>
+        </div>
+      </div>
+      <div class="contact-form">
+        <form id="contactForm" onsubmit="submitContact(event)">
+          <div class="form-row">
+            <div class="form-group"><label>Your Name</label><input type="text" id="fname" name="name" placeholder="Jane Smith"></div>
+            <div class="form-group"><label>Email Address <span style="color:#f87171">*</span></label><input type="email" id="femail" name="email" placeholder="jane@example.com" required></div>
+          </div>
+          <div class="form-group"><label>Interested In</label>
+            <select id="fcourse" name="course">
+              <option value="">Select a course (optional)</option>
+              <option value="aida1">AIDA Level 1 — Intro Freediving</option>
+              <option value="aida2">AIDA Level 2 — Open Water</option>
+              <option value="aida3">AIDA Level 3 — Advanced</option>
+              <option value="kids">Junior Ocean Explorers</option>
+              <option value="private">Private / Custom Session</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Message <span style="color:#f87171">*</span></label>
+            <textarea id="fmessage" name="message" placeholder="Tell John a bit about your experience level and what you'd like to achieve…" required></textarea>
+          </div>
+          <button type="submit" class="btn-primary" style="width:100%;justify-content:center">Send Message</button>
+          <div class="form-msg" id="formMsg"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <div>
+      <a href="#" class="footer-brand">Diving<span>withJohn</span></a>
+      <p class="footer-copy" style="margin-top:.5rem">&copy; 2026 Diving with John. All rights reserved.</p>
+    </div>
+    <nav class="footer-links" aria-label="Footer navigation">
+      <a href="#about">About</a><a href="#courses">Courses</a><a href="#locations">Locations</a>
+      <a href="#testimonials">Testimonials</a><a href="#faq">FAQ</a><a href="#contact">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  const API_BASE = '';
+  const GALLERY_COLORS = ['gc0','gc1','gc2','gc3','gc4','gc5'];
+
+  async function fetchJSON(path) {
+    const r = await fetch(API_BASE + path);
+    if (!r.ok) throw new Error(r.status);
+    return r.json();
+  }
+
+  // ── SECTION VISIBILITY ────────────────────────────────
+  async function applySections() {
+    try {
+      const sections = await fetchJSON('/api/sections');
+      for (const [key, enabled] of Object.entries(sections)) {
+        const el = document.getElementById(key);
+        if (el) el.style.display = enabled ? '' : 'none';
+      }
+    } catch { /* keep all sections visible if API unreachable */ }
+  }
+
+  // ── LOCATIONS ─────────────────────────────────────────
+  async function loadLocations() {
+    const grid = document.getElementById('locationsGrid');
+    try {
+      const items = await fetchJSON('/api/locations');
+      if (!items.length) { grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center">No locations listed yet.</p>'; return; }
+      grid.innerHTML = items.map(l => `
+        <div class="location-card">
+          <div class="location-flag">${l.flag || '🌊'}</div>
+          <h3>${l.name}</h3>
+          <p>${l.description || ''}</p>
+        </div>`).join('');
+    } catch { grid.innerHTML = ''; }
+  }
+
+  // ── TESTIMONIALS ──────────────────────────────────────
+  async function loadTestimonials() {
+    const grid = document.getElementById('testimonialsGrid');
+    try {
+      const items = await fetchJSON('/api/testimonials');
+      if (!items.length) { grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center">No testimonials yet.</p>'; return; }
+      grid.innerHTML = items.map(t => {
+        const initials = t.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+        return `
+          <div class="testimonial-card">
+            <div class="testimonial-stars">${'★'.repeat(t.stars || 5)}</div>
+            <blockquote>"${t.quote}"</blockquote>
+            <div class="testimonial-author">
+              <div class="author-avatar">${initials}</div>
+              <div>
+                <div class="author-name">${t.name}</div>
+                <div class="author-location">${t.location || ''}</div>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    } catch { grid.innerHTML = ''; }
+  }
+
+  // ── GALLERY ───────────────────────────────────────────
+  async function loadGallery() {
+    const grid = document.getElementById('galleryGrid');
+    try {
+      const items = await fetchJSON('/api/gallery');
+      if (!items.length) { grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center">No gallery items yet.</p>'; return; }
+      grid.innerHTML = items.map((g, i) => `
+        <div class="gallery-item ${GALLERY_COLORS[i % GALLERY_COLORS.length]}" role="img" aria-label="${g.caption || 'Gallery image'}">
+          ${g.icon || '🤿'}
+        </div>`).join('');
+    } catch { grid.innerHTML = ''; }
+  }
+
+  // ── FAQ ───────────────────────────────────────────────
+  async function loadFAQ() {
+    const list = document.getElementById('faqList');
+    try {
+      const items = await fetchJSON('/api/faq');
+      if (!items.length) { list.innerHTML = '<p style="color:var(--muted);text-align:center">No FAQ items yet.</p>'; return; }
+      list.innerHTML = items.map(f => `
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            ${f.question}<span class="chevron">▾</span>
+          </button>
+          <div class="faq-answer">${f.answer}</div>
+        </div>`).join('');
+    } catch { list.innerHTML = ''; }
+  }
+
+  // ── FAQ TOGGLE ────────────────────────────────────────
+  function toggleFaq(btn) {
+    const item = btn.closest('.faq-item');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  }
+
+  // ── CONTACT FORM ──────────────────────────────────────
+  async function submitContact(e) {
+    e.preventDefault();
+    const form = e.target;
+    const msg  = document.getElementById('formMsg');
+    const btn  = form.querySelector('button[type=submit]');
+    const course = form.course.value ? ` [Course interest: ${form.course.value}]` : '';
+    const payload = { name: form.name.value || null, email: form.email.value,
+      message: form.message.value + course };
+    btn.disabled = true; btn.textContent = 'Sending…';
+    msg.className = 'form-msg';
+    try {
+      const r = await fetch(`${API_BASE}/api/contact`, {
+        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+      });
+      if (!r.ok) throw new Error();
+      msg.textContent = "Message sent! John will be in touch within 24 hours.";
+      msg.className = 'form-msg success';
+      form.reset();
+    } catch {
+      msg.textContent = "Something went wrong — please email hello@divingwithjohn.com directly.";
+      msg.className = 'form-msg error';
+    } finally { btn.disabled = false; btn.textContent = 'Send Message'; }
+  }
+
+  // ── INIT ──────────────────────────────────────────────
+  applySections();
+  loadLocations();
+  loadTestimonials();
+  loadGallery();
+  loadFAQ();
+</script>
+</body>
+</html>
