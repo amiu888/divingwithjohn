@@ -1,0 +1,136 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Diving with John — serverless website
+
+Parameters:
+  AdminToken:
+    Type: String
+    NoEcho: true
+    Description: Admin password for the CMS
+  SiteHost:
+    Type: String
+    Default: ""
+    Description: Public URL (e.g. https://divingwithjohn.com) — used for sitemap
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 256
+    Runtime: python3.11
+
+Resources:
+
+  # ── DynamoDB Tables ──────────────────────────────────────
+
+  ContactsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: dwj_contacts
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: [{AttributeName: id, AttributeType: S}]
+      KeySchema: [{AttributeName: id, KeyType: HASH}]
+
+  CoursesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: dwj_courses
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: [{AttributeName: id, AttributeType: S}]
+      KeySchema: [{AttributeName: id, KeyType: HASH}]
+
+  BookingsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: dwj_bookings
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: [{AttributeName: id, AttributeType: S}]
+      KeySchema: [{AttributeName: id, KeyType: HASH}]
+
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: dwj_users
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: [{AttributeName: email, AttributeType: S}]
+      KeySchema: [{AttributeName: email, KeyType: HASH}]
+
+  TestimonialsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: dwj_testimonials
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: [{AttributeName: id, AttributeType: S}]
+      KeySchema: [{AttributeName: id, KeyType: HASH}]
+
+  GalleryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: dwj_gallery
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: [{AttributeName: id, AttributeType: S}]
+      KeySchema: [{AttributeName: id, KeyType: HASH}]
+
+  FAQTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: dwj_faq
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: [{AttributeName: id, AttributeType: S}]
+      KeySchema: [{AttributeName: id, KeyType: HASH}]
+
+  LocationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: dwj_locations
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: [{AttributeName: id, AttributeType: S}]
+      KeySchema: [{AttributeName: id, KeyType: HASH}]
+
+  SectionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: dwj_sections
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: [{AttributeName: key, AttributeType: S}]
+      KeySchema: [{AttributeName: key, KeyType: HASH}]
+
+  # ── Lambda Function ──────────────────────────────────────
+
+  DivingAPI:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: main.handler
+      Environment:
+        Variables:
+          ADMIN_TOKEN: !Ref AdminToken
+          SITE_HOST: !Ref SiteHost
+          AWS_DEFAULT_REGION: !Ref AWS::Region
+      Policies:
+        - DynamoDBCrudPolicy: {TableName: !Ref ContactsTable}
+        - DynamoDBCrudPolicy: {TableName: !Ref CoursesTable}
+        - DynamoDBCrudPolicy: {TableName: !Ref BookingsTable}
+        - DynamoDBCrudPolicy: {TableName: !Ref UsersTable}
+        - DynamoDBCrudPolicy: {TableName: !Ref TestimonialsTable}
+        - DynamoDBCrudPolicy: {TableName: !Ref GalleryTable}
+        - DynamoDBCrudPolicy: {TableName: !Ref FAQTable}
+        - DynamoDBCrudPolicy: {TableName: !Ref LocationsTable}
+        - DynamoDBCrudPolicy: {TableName: !Ref SectionsTable}
+      Events:
+        Root:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: ANY
+        Proxy:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+    Metadata:
+      BuildMethod: makefile
+
+Outputs:
+  ApiUrl:
+    Description: Public URL for the site
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"

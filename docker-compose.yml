@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    ports:
+      - "8001:8000"
+    command: "-jar DynamoDBLocal.jar -sharedDb"
+
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - ADMIN_TOKEN=${ADMIN_TOKEN:-divejohn2026}
+      - SITE_HOST=${SITE_HOST:-http://localhost:8000}
+      - DYNAMODB_ENDPOINT_URL=http://dynamodb-local:8000
+      - AWS_ACCESS_KEY_ID=local
+      - AWS_SECRET_ACCESS_KEY=local
+      - AWS_DEFAULT_REGION=us-east-1
+    depends_on:
+      - dynamodb-local
+    restart: unless-stopped

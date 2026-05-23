@@ -7,7 +7,7 @@ class ContactCreate(BaseModel):
     message: str
 
 class BookingCreate(BaseModel):
-    course_id: int
+    course_id: str
     user_email: EmailStr
     date: str
 
