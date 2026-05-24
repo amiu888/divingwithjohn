@@ -38,6 +38,23 @@ def get_dynamodb():
         kwargs['aws_secret_access_key'] = os.getenv('AWS_SECRET_ACCESS_KEY', 'local')
     return boto3.resource('dynamodb', **kwargs)
 
+_admin_token_cache: Optional[str] = None
+
+def get_admin_token() -> Optional[str]:
+    global _admin_token_cache
+    if _admin_token_cache:
+        return _admin_token_cache
+    # Local dev: use env var
+    local = os.getenv('ADMIN_TOKEN')
+    if local:
+        _admin_token_cache = local
+        return _admin_token_cache
+    # Production: read from SSM Parameter Store
+    ssm = boto3.client('ssm', region_name=os.getenv('AWS_DEFAULT_REGION', 'us-east-1'))
+    resp = ssm.get_parameter(Name='/divingwithjohn/admin-token', WithDecryption=True)
+    _admin_token_cache = resp['Parameter']['Value']
+    return _admin_token_cache
+
 def tbl(name: str):
     return get_dynamodb().Table(f'dwj_{name}')
 
@@ -49,7 +66,7 @@ def now_iso():
     return datetime.now(timezone.utc).isoformat()
 
 def require_admin(x_admin_token: Optional[str]):
-    token = os.getenv("ADMIN_TOKEN")
+    token = get_admin_token()
     if not token or x_admin_token != token:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
