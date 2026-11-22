@@ -6,7 +6,7 @@ Owner: **Afonso Miu** (GitHub `amiu888`). The instructor and client is **John**.
 
 This document is meant to let a new developer pick the project up cold. Everything here was checked on **11/21/2026**. Items marked **⚠️ unverified** or listed in [Known unknowns](#known-unknowns--ask-afonso) could not be confirmed.
 
-> **Status on 11/21/2026: the site is DOWN.** `https://www.divingwithjohn.com` returns Cloudflare **error 1033** (HTTP 530), which means the Cloudflare Tunnel behind it has no running connector. The apex `divingwithjohn.com` has **no A/AAAA/CNAME record**, so it doesn't resolve at all. See [Troubleshooting](#troubleshooting).
+> **Restored 11/21/2026 ~5:15 PM PT** (Mac Studio, see §6a). Earlier that day the site was down: `https://www.divingwithjohn.com` returns Cloudflare **error 1033** (HTTP 530), which means the Cloudflare Tunnel behind it has no running connector. The apex `divingwithjohn.com` has **no A/AAAA/CNAME record**, so it doesn't resolve at all. See [Troubleshooting](#troubleshooting).
 
 ---
 
@@ -171,14 +171,24 @@ The app runs from the Studio checkout `~/Documents/miulabs/divingwithjohn` with 
 | File | Purpose |
 |---|---|
 | `~/.divingwithjohn/app.env` (chmod 600) | `ADMIN_TOKEN`, `SITE_HOST`. **Secret; never commit.** |
-| `~/.divingwithjohn/compose.override.yml` | binds app to `127.0.0.1:8095`, DynamoDB Local to `127.0.0.1:8096`, persists DynamoDB in the docker volume `divingwithjohn_dwj-dynamodb-data` (`-dbPath`), `restart: unless-stopped` |
+| `~/.divingwithjohn/compose.override.yml` | binds app to `127.0.0.1:8002`, DynamoDB Local to `127.0.0.1:8096`, persists DynamoDB in the docker volume `divingwithjohn_dwj-dynamodb-data` (`-dbPath`), `restart: unless-stopped` |
 | `~/.divingwithjohn/start-app.sh` | idempotent `docker compose ... up -d` (starts OrbStack if needed) |
-| `~/.divingwithjohn/logs/` | `app-agent.log`, `tunnel.log` |
-| `~/.cloudflared/divingwithjohn.yml` | locally managed ingress for tunnel `DivingWithJohn`: `www.divingwithjohn.com → http://localhost:8095` |
+| `~/.divingwithjohn/logs/` | `app-agent.log`, `mac-studio-tunnel.log` (and the old `tunnel.log`) |
+| `~/.cloudflared/d90ecb83-….json` (600) | credentials for the **`mac-studio`** tunnel, which is what actually serves www. Secret. |
+| `~/.cloudflared/divingwithjohn.yml` | unused spare: locally managed config for tunnel `DivingWithJohn` (still says :8095) |
 
 LaunchAgents (in `~/Library/LaunchAgents/`):
 - `com.afonso.divingwithjohn-app` runs `start-app.sh` at login and every 5 min (a watchdog).
-- `com.afonso.divingwithjohn-tunnel` runs `cloudflared tunnel --config ~/.cloudflared/divingwithjohn.yml run 45d41e7d-…` with KeepAlive.
+- `com.afonso.mac-studio-tunnel` runs `cloudflared tunnel --no-autoupdate run --credentials-file ~/.cloudflared/d90ecb83-….json d90ecb83-…` with KeepAlive. The ingress is **dashboard-managed** (Zero Trust → Tunnels → mac-studio), so edit hostnames and ports there, not locally.
+- `com.afonso.divingwithjohn-tunnel` is **disabled** (`launchctl disable`) because DNS doesn't route to that tunnel. Its files are kept.
+
+The `mac-studio` tunnel serves three hostnames (dashboard config, 11/21/2026):
+
+| Hostname | Origin | Code served from |
+|---|---|---|
+| `www.divingwithjohn.com` | `localhost:8002`: docker compose project `divingwithjohn` | `~/Documents/miulabs/divingwithjohn` (image built from it; rebuild to deploy) |
+| `studio.miulabs.app` | `localhost:3000`: container `aegis-wm` | compose `~/Documents/miulabs/aegis-desk/infra/compose.wm.yml` (prebuilt image `ghcr.io/koala73/worldmonitor`) |
+| `scantabsai.miulabs.app` | `http://10.0.2.63` (another LAN machine) | not on the Studio |
 
 Common commands (on the Studio):
 
@@ -188,17 +198,15 @@ C="docker compose -f docker-compose.yml -f $HOME/.divingwithjohn/compose.overrid
 $C ps                      # status
 $C logs -f app             # app logs
 $C up -d --build           # redeploy after editing frontend/ or backend/
-curl -I http://127.0.0.1:8095/
-launchctl kickstart -k gui/$(id -u)/com.afonso.divingwithjohn-tunnel   # restart tunnel
+curl -I http://127.0.0.1:8002/
+launchctl kickstart -k gui/$(id -u)/com.afonso.mac-studio-tunnel   # restart tunnel
 ```
 
-### ⚠️ DNS routing gotcha (found 11/21/2026)
+### DNS routing note (found 11/21/2026)
 
 `www.divingwithjohn.com` is **not** routed to the `DivingWithJohn` tunnel. Its DNS record points at the **dashboard-managed `mac-studio` tunnel** (`d90ecb83-…`), whose remote config is:
 `studio.miulabs.app → localhost:3000`, `scantabsai.miulabs.app → http://10.0.2.63`, `www.divingwithjohn.com → localhost:8002`.
-Running the `DivingWithJohn` connector alone therefore still gives error 1033. You can fix it either way:
-1. Repoint DNS: `cloudflared tunnel route dns --overwrite-dns DivingWithJohn www.divingwithjohn.com`. This is a DNS change, so it needs the owner's OK.
-2. Or serve on port 8002 and run a connector for the `mac-studio` tunnel. Note that this also re-publishes `studio.miulabs.app` and `scantabsai.miulabs.app`.
+Running the `DivingWithJohn` connector alone gives error 1033. **Chosen fix (11/21/2026):** serve on port 8002 and run the `mac-studio` connector (no DNS change). If www should ever move to its own tunnel, run `cloudflared tunnel route dns --overwrite-dns DivingWithJohn www.divingwithjohn.com` (a DNS change that needs the owner's OK), point `divingwithjohn.yml` at 8002, and re-enable that agent.
 
 ### Mode B: AWS serverless (SAM)
 
@@ -226,12 +234,12 @@ Notes:
 | Registrar | ⚠️ unknown. Ask Afonso (could be Cloudflare Registrar). |
 | DNS | Cloudflare, nameservers `hayes.ns.cloudflare.com`, `izabella.ns.cloudflare.com` |
 | Cloudflare account | Afonso's (free plan), which also holds `amiu.org` and `miulabs.app` |
-| `www.divingwithjohn.com` | Proxied (orange cloud) CNAME to the **`mac-studio`** tunnel (`d90ecb83-…`, dashboard-managed, ingress → `localhost:8002`). **Not** the `DivingWithJohn` tunnel. See §6a. |
+| `www.divingwithjohn.com` | Proxied CNAME to the **`mac-studio`** tunnel (`d90ecb83-…`, dashboard-managed, ingress → `localhost:8002`). Connector runs on the Mac Studio (`com.afonso.mac-studio-tunnel`). See §6a. |
 | `divingwithjohn.com` (apex) | **No record**, so it doesn't resolve. Add a proxied record to the tunnel, or a redirect rule apex → www. |
 | MX / SPF / DMARC | **None.** No email on this domain. |
 | SSL | Cloudflare Universal SSL at the edge (cert served for www). Origin traffic goes through the tunnel, so no origin cert is needed. |
 | Other Cloudflare products | No Pages project or Worker was found for this domain; the free-plan account's Pages/Workers are for miulabs.app. KV/D1/R2/Turnstile aren't used by the code. ⚠️ Not confirmed in the dashboard (no API token on hand). |
-| Tunnels in the account | `DivingWithJohn` (connector on Mac Studio since 11/21/2026), `mac-studio` (0; carries www + studio/scantabsai.miulabs.app), `renren` (photos.amiu.org, running on Mac Studio), `turenas_tunnel` (NAS, running) |
+| Tunnels in the account | `DivingWithJohn` (unused, agent disabled), `mac-studio` (live on the Mac Studio; carries www + studio/scantabsai.miulabs.app), `renren` (photos.amiu.org, running on Mac Studio), `turenas_tunnel` (NAS, running) |
 
 ## 8. Environment variables and secrets
 
@@ -294,10 +302,10 @@ Names only. **Never commit values.** `.env` is git-ignored.
 
 ## Known unknowns / ask Afonso
 
-1. **Where did the `DivingWithJohn` tunnel connector run**, and was it dashboard-managed (token) or locally managed (credentials JSON)? Which local port did it point to?
+1. ~~Where did the tunnel run?~~ Resolved: www goes through the `mac-studio` tunnel → `localhost:8002`. Decide whether `DivingWithJohn` should be deleted or adopted.
 2. **Which machine should host the site** going forward (Mac Studio, NAS, or AWS)? Should it move to AWS SAM or Cloudflare Pages + Workers/D1 instead of a self-hosted tunnel?
 3. **Was the AWS SAM stack ever deployed?** If so: which AWS account, which region, and whether the SSM parameter exists.
-4. **Where is the production data?** If it was DynamoDB Local without a volume, earlier contacts/bookings may be gone.
+4. **Where is the production data?** Earlier contacts/bookings were not recovered; on 11/21/2026 the DB started empty and was seeded with sample content (now persisted in volume `divingwithjohn_dwj-dynamodb-data`). Replace the sample content via /admin.html.
 5. **Registrar** for divingwithjohn.com and its renewal date.
 6. Should the **apex** `divingwithjohn.com` resolve (redirect to www)?
 7. Should the **Mac Studio redesign** (uncommitted `index.html` + `frontend/media/`) be committed? 33 MB of video may be better on R2 or a CDN than in git.
