@@ -164,6 +164,42 @@ There is **no CI**. Pushing to `main` deploys nothing. Use one of the manual pat
      `cloudflared tunnel --config <that.yml> run DivingWithJohn`, ideally wrapped in a LaunchAgent/systemd unit so it survives reboots.
 3. Verify: `cloudflared tunnel info DivingWithJohn` shows connections, and `curl -I https://www.divingwithjohn.com` returns 200.
 
+## 6a. Current production setup on the Mac Studio (set up 11/21/2026)
+
+The app runs from the Studio checkout `~/Documents/miulabs/divingwithjohn` with Docker (OrbStack, which starts at login). Runtime files live **outside the repo** in `~/.divingwithjohn/` (chmod 700):
+
+| File | Purpose |
+|---|---|
+| `~/.divingwithjohn/app.env` (chmod 600) | `ADMIN_TOKEN`, `SITE_HOST`. **Secret; never commit.** |
+| `~/.divingwithjohn/compose.override.yml` | binds app to `127.0.0.1:8095`, DynamoDB Local to `127.0.0.1:8096`, persists DynamoDB in the docker volume `divingwithjohn_dwj-dynamodb-data` (`-dbPath`), `restart: unless-stopped` |
+| `~/.divingwithjohn/start-app.sh` | idempotent `docker compose ... up -d` (starts OrbStack if needed) |
+| `~/.divingwithjohn/logs/` | `app-agent.log`, `tunnel.log` |
+| `~/.cloudflared/divingwithjohn.yml` | locally managed ingress for tunnel `DivingWithJohn`: `www.divingwithjohn.com → http://localhost:8095` |
+
+LaunchAgents (in `~/Library/LaunchAgents/`):
+- `com.afonso.divingwithjohn-app` runs `start-app.sh` at login and every 5 min (a watchdog).
+- `com.afonso.divingwithjohn-tunnel` runs `cloudflared tunnel --config ~/.cloudflared/divingwithjohn.yml run 45d41e7d-…` with KeepAlive.
+
+Common commands (on the Studio):
+
+```bash
+cd ~/Documents/miulabs/divingwithjohn
+C="docker compose -f docker-compose.yml -f $HOME/.divingwithjohn/compose.override.yml --env-file $HOME/.divingwithjohn/app.env"
+$C ps                      # status
+$C logs -f app             # app logs
+$C up -d --build           # redeploy after editing frontend/ or backend/
+curl -I http://127.0.0.1:8095/
+launchctl kickstart -k gui/$(id -u)/com.afonso.divingwithjohn-tunnel   # restart tunnel
+```
+
+### ⚠️ DNS routing gotcha (found 11/21/2026)
+
+`www.divingwithjohn.com` is **not** routed to the `DivingWithJohn` tunnel. Its DNS record points at the **dashboard-managed `mac-studio` tunnel** (`d90ecb83-…`), whose remote config is:
+`studio.miulabs.app → localhost:3000`, `scantabsai.miulabs.app → http://10.0.2.63`, `www.divingwithjohn.com → localhost:8002`.
+Running the `DivingWithJohn` connector alone therefore still gives error 1033. You can fix it either way:
+1. Repoint DNS: `cloudflared tunnel route dns --overwrite-dns DivingWithJohn www.divingwithjohn.com`. This is a DNS change, so it needs the owner's OK.
+2. Or serve on port 8002 and run a connector for the `mac-studio` tunnel. Note that this also re-publishes `studio.miulabs.app` and `scantabsai.miulabs.app`.
+
 ### Mode B: AWS serverless (SAM)
 
 Scripted in `template.yaml`. There's no `samconfig.toml` in any checkout, so it was probably never deployed (⚠️ unverified).
@@ -190,12 +226,12 @@ Notes:
 | Registrar | ⚠️ unknown. Ask Afonso (could be Cloudflare Registrar). |
 | DNS | Cloudflare, nameservers `hayes.ns.cloudflare.com`, `izabella.ns.cloudflare.com` |
 | Cloudflare account | Afonso's (free plan), which also holds `amiu.org` and `miulabs.app` |
-| `www.divingwithjohn.com` | Proxied (orange cloud), resolves to Cloudflare anycast IPs. Edge returns **1033**, so it's a Tunnel route to `DivingWithJohn`. |
+| `www.divingwithjohn.com` | Proxied (orange cloud) CNAME to the **`mac-studio`** tunnel (`d90ecb83-…`, dashboard-managed, ingress → `localhost:8002`). **Not** the `DivingWithJohn` tunnel. See §6a. |
 | `divingwithjohn.com` (apex) | **No record**, so it doesn't resolve. Add a proxied record to the tunnel, or a redirect rule apex → www. |
 | MX / SPF / DMARC | **None.** No email on this domain. |
 | SSL | Cloudflare Universal SSL at the edge (cert served for www). Origin traffic goes through the tunnel, so no origin cert is needed. |
 | Other Cloudflare products | No Pages project or Worker was found for this domain; the free-plan account's Pages/Workers are for miulabs.app. KV/D1/R2/Turnstile aren't used by the code. ⚠️ Not confirmed in the dashboard (no API token on hand). |
-| Tunnels in the account | `DivingWithJohn` (0 connections), `mac-studio` (0), `renren` (photos.amiu.org, running on Mac Studio), `turenas_tunnel` (NAS, running) |
+| Tunnels in the account | `DivingWithJohn` (connector on Mac Studio since 11/21/2026), `mac-studio` (0; carries www + studio/scantabsai.miulabs.app), `renren` (photos.amiu.org, running on Mac Studio), `turenas_tunnel` (NAS, running) |
 
 ## 8. Environment variables and secrets
 
