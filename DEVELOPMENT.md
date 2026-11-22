@@ -1,3 +1,5 @@
+> See **README.md** for the up-to-date handoff guide (architecture, hosting, DNS, troubleshooting).
+
 # Diving with John — Developer Guide
 
 ## Stack
@@ -39,7 +41,7 @@ docker-compose exec app python db_init.py
 | http://localhost:8000 | Main website |
 | http://localhost:8000/admin.html | Admin panel |
 
-**Admin token**: `divejohn2026` (set in `backend/.env`)
+**Admin token**: whatever you set as `ADMIN_TOKEN` in `backend/.env`
 
 ### Stop
 
@@ -62,14 +64,14 @@ DYNAMODB_ENDPOINT_URL=http://localhost:8001 \
 AWS_ACCESS_KEY_ID=local \
 AWS_SECRET_ACCESS_KEY=local \
 AWS_DEFAULT_REGION=us-east-1 \
-ADMIN_TOKEN=divejohn2026 \
+ADMIN_TOKEN=<choose-a-strong-token> \
 python db_init.py
 
 DYNAMODB_ENDPOINT_URL=http://localhost:8001 \
 AWS_ACCESS_KEY_ID=local \
 AWS_SECRET_ACCESS_KEY=local \
 AWS_DEFAULT_REGION=us-east-1 \
-ADMIN_TOKEN=divejohn2026 \
+ADMIN_TOKEN=<choose-a-strong-token> \
 uvicorn main:app --reload --port 8000
 ```
 
@@ -97,7 +99,7 @@ aws configure
 ```bash
 aws ssm put-parameter \
   --name /divingwithjohn/admin-token \
-  --value "divejohn2026" \
+  --value "<choose-a-strong-token>" \
   --type SecureString
 ```
 
@@ -169,7 +171,7 @@ divingwithjohn/
 
 | Variable | Local (.env) | Production (AWS) |
 |----------|-------------|------------------|
-| `ADMIN_TOKEN` | `divejohn2026` | Read from SSM (`/divingwithjohn/admin-token`) |
+| `ADMIN_TOKEN` | `<choose-a-strong-token>` | Read from SSM (`/divingwithjohn/admin-token`) |
 | `DYNAMODB_ENDPOINT_URL` | `http://dynamodb-local:8000` | Not set (uses real AWS) |
 | `AWS_ACCESS_KEY_ID` | `local` | IAM role (automatic) |
 | `AWS_SECRET_ACCESS_KEY` | `local` | IAM role (automatic) |

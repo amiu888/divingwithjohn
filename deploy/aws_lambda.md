@@ -44,7 +44,7 @@ sam deploy --guided
 Answer the prompts:
 - **Stack Name**: `divingwithjohn`
 - **AWS Region**: pick the closest to your users (e.g. `ap-southeast-1` for Asia)
-- **AdminToken**: your chosen admin password (e.g. `divejohn2026`)
+- **AdminToken**: your chosen admin password (e.g. `<choose-a-strong-token>`)
 - **SiteHost**: leave blank for now, update after deploy
 - **Save arguments to config**: `Y`
 
@@ -111,8 +111,8 @@ docker run -p 8001:8000 amazon/dynamodb-local -jar DynamoDBLocal.jar -sharedDb
 # Terminal 2 — App
 cd backend
 source ../.venv/bin/activate
-DYNAMODB_ENDPOINT_URL=http://localhost:8001 AWS_ACCESS_KEY_ID=local AWS_SECRET_ACCESS_KEY=local AWS_DEFAULT_REGION=us-east-1 ADMIN_TOKEN=divejohn2026 python db_init.py
-DYNAMODB_ENDPOINT_URL=http://localhost:8001 AWS_ACCESS_KEY_ID=local AWS_SECRET_ACCESS_KEY=local AWS_DEFAULT_REGION=us-east-1 ADMIN_TOKEN=divejohn2026 uvicorn main:app --reload --port 8000
+DYNAMODB_ENDPOINT_URL=http://localhost:8001 AWS_ACCESS_KEY_ID=local AWS_SECRET_ACCESS_KEY=local AWS_DEFAULT_REGION=us-east-1 ADMIN_TOKEN=<choose-a-strong-token> python db_init.py
+DYNAMODB_ENDPOINT_URL=http://localhost:8001 AWS_ACCESS_KEY_ID=local AWS_SECRET_ACCESS_KEY=local AWS_DEFAULT_REGION=us-east-1 ADMIN_TOKEN=<choose-a-strong-token> uvicorn main:app --reload --port 8000
 ```
 
 ---
